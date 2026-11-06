@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Instalacion PotatoeOptimizer</title>
+    <style>
+      :root {
+        --bg: #0d1322;
+        --surface: #151d33;
+        --line: #2b3659;
+        --text: #ebe6d6;
+        --muted: #9ba5c2;
+        --gold: #d9b45a;
+        --gold-soft: rgba(217, 180, 90, 0.14);
+        --teal: #2bb3d6;
+        --ok: #6fcf97;
+        --warn: #e8a15a;
+        --serif: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+        --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+      }
+      @media (prefers-color-scheme: light) {
+        :root {
+          --bg: #edf1f7;
+          --surface: #ffffff;
+          --line: #c9d2e4;
+          --text: #18203a;
+          --muted: #566085;
+          --gold: #8a6510;
+          --gold-soft: rgba(138, 101, 16, 0.1);
+          --teal: #0b7b99;
+          --ok: #1d7a47;
+          --warn: #a8570f;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        background: var(--bg);
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.55 var(--sans);
+        padding: env(safe-area-inset-top, 0) 0 env(safe-area-inset-bottom, 0);
+      }
+      main {
+        max-width: 680px;
+        margin: 0 auto;
+        padding: 32px 18px 56px;
+      }
+      h1 {
+        font: 700 clamp(30px, 7vw, 44px)/1.1 var(--serif);
+        color: var(--gold);
+        margin: 0 0 8px;
+        letter-spacing: 0.01em;
+      }
+      .sub {
+        margin: 0;
+        color: var(--muted);
+        max-width: 46ch;
+      }
+      :focus-visible {
+        outline: 3px solid var(--teal);
+        outline-offset: 3px;
+        border-radius: 6px;
+      }
+
+      /* Ruta de carpetas */
+      .route {
+        margin: 28px 0 8px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: var(--surface);
+      }
+      .route-title {
+        margin: 0 0 10px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .path {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px 4px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+      .seg {
+        font: 14px var(--mono);
+        padding: 5px 10px;
+        border: 1px dashed var(--line);
+        border-radius: 6px;
+        color: var(--muted);
+        transition:
+          background 0.3s,
+          color 0.3s,
+          border-color 0.3s;
+      }
+      .seg.now {
+        border-color: var(--gold);
+        color: var(--text);
+      }
+      .seg.on {
+        border: 1px solid var(--gold);
+        background: var(--gold-soft);
+        color: var(--gold);
+        font-weight: 600;
+      }
+      .sep {
+        color: var(--line);
+        font-size: 18px;
+      }
+      .bar {
+        height: 6px;
+        background: var(--line);
+        border-radius: 3px;
+        margin-top: 14px;
+        overflow: hidden;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--gold);
+        transition: width 0.4s;
+      }
+      .count {
+        margin: 6px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      /* Pasos */
+      .steps {
+        margin: 22px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+      .step {
+        position: relative;
+        display: grid;
+        grid-template-columns: 44px 1fr;
+        column-gap: 12px;
+      }
+      .step::before {
+        content: "";
+        position: absolute;
+        left: 21px;
+        top: 44px;
+        bottom: -6px;
+        width: 2px;
+        background: var(--line);
+      }
+      .step:last-child::before {
+        display: none;
+      }
+      .mark {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 2px solid var(--line);
+        background: var(--surface);
+        display: grid;
+        place-items: center;
+        font: 700 18px var(--serif);
+        color: var(--muted);
+        transition: all 0.3s;
+        z-index: 1;
+      }
+      .step.open .mark {
+        border-color: var(--gold);
+        color: var(--gold);
+      }
+      .step.done .mark {
+        background: var(--ok);
+        border-color: var(--ok);
+        color: #0d1322;
+      }
+      .head {
+        all: unset;
+        box-sizing: border-box;
+        cursor: pointer;
+        display: block;
+        width: 100%;
+        padding: 9px 0 9px;
+      }
+      .head:focus-visible {
+        outline: 3px solid var(--teal);
+        outline-offset: 3px;
+        border-radius: 6px;
+      }
+      .head b {
+        display: block;
+        font: 700 20px/1.25 var(--serif);
+      }
+      .head span {
+        display: block;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .panel {
+        display: grid;
+        grid-template-rows: 0fr;
+        transition: grid-template-rows 0.35s;
+        grid-column: 2;
+      }
+      .step.open .panel {
+        grid-template-rows: 1fr;
+      }
+      .panel > div {
+        overflow: hidden;
+        min-height: 0;
+      }
+      .body {
+        padding: 6px 0 26px;
+      }
+      .body p {
+        margin: 0 0 12px;
+      }
+      .body code,
+      .kbd {
+        font: 14px var(--mono);
+        background: var(--gold-soft);
+        color: var(--gold);
+        padding: 1px 6px;
+        border-radius: 4px;
+      }
+      .shot {
+        position: relative;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 4px 0 12px;
+      }
+      .shot img {
+        display: block;
+        width: 100%;
+        height: clamp(320px, 60vw, 460px);
+        object-fit: cover;
+        object-position: center 57.4%;
+      }
+
+      .tree {
+        font: 14px/1.9 var(--mono);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin: 4px 0 12px;
+        overflow-x: auto;
+      }
+      .tree div {
+        white-space: nowrap;
+      }
+      .tree .l1 {
+        padding-left: 18px;
+      }
+      .tree .l2 {
+        padding-left: 36px;
+      }
+      .tree .l3 {
+        padding-left: 54px;
+      }
+      .tree .hot {
+        color: var(--gold);
+        font-weight: 700;
+      }
+      .step.open .tree .reveal {
+        animation: glow 1.2s ease both;
+        animation-delay: calc(var(--i) * 0.35s);
+      }
+      @keyframes glow {
+        0% {
+          background: transparent;
+        }
+        30% {
+          background: var(--gold-soft);
+        }
+        100% {
+          background: transparent;
+        }
+      }
+
+      .note {
+        border-left: 4px solid var(--warn);
+        background: var(--surface);
+        padding: 10px 14px;
+        border-radius: 0 8px 8px 0;
+        font-size: 15px;
+        margin: 0 0 12px;
+      }
+      .chat {
+        font: 14px var(--mono);
+        background: #05070d;
+        color: #d8d8d8;
+        padding: 12px 14px;
+        border-radius: 8px;
+        margin: 4px 0 12px;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+      .chat em {
+        font-style: normal;
+        color: #35e06a;
+      }
+
+      .btn {
+        display: inline-block;
+        text-decoration: none;
+        font: 600 15px var(--sans);
+        cursor: pointer;
+        border-radius: 8px;
+        padding: 10px 18px;
+        border: 1px solid var(--gold);
+        background: var(--gold);
+        color: #0d1322;
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--gold);
+      }
+      .btn:hover {
+        filter: brightness(1.08);
+      }
+
+      .final {
+        display: none;
+        margin-top: 8px;
+        padding: 20px;
+        border: 1px solid var(--ok);
+        border-radius: 12px;
+        background: var(--surface);
+      }
+      .final.show {
+        display: block;
+      }
+      .final h2 {
+        margin: 0 0 6px;
+        font: 700 24px var(--serif);
+        color: var(--ok);
+      }
+      .final p {
+        margin: 0 0 14px;
+      }
+      footer {
+        margin-top: 30px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+          animation: none !important;
+        }
+      }
+      @media (max-width: 420px) {
+        .step {
+          grid-template-columns: 38px 1fr;
+          column-gap: 10px;
+        }
+        .mark {
+          width: 38px;
+          height: 38px;
+          font-size: 16px;
+        }
+        .step::before {
+          left: 18px;
+          top: 38px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>PotatoeOptimizer</h1>
+      <p class="sub">
+        Más FPS en World of Warcraft: Forever. Son 4 pasos y se tarda menos de
+        un minuto.
+      </p>
+
+      <section class="route" aria-label="Ruta de la carpeta">
+        <p class="route-title">
+          La carpeta de destino se va armando conforme avanzas:
+        </p>
+        <ol class="path">
+          <li class="seg" data-seg="0">World of Warcraft</li>
+          <li class="sep" aria-hidden="true">›</li>
+          <li class="seg" data-seg="1">_forever</li>
+          <li class="sep" aria-hidden="true">›</li>
+          <li class="seg" data-seg="2">Interface</li>
+          <li class="sep" aria-hidden="true">›</li>
+          <li class="seg" data-seg="3">AddOns</li>
+          <li class="sep" aria-hidden="true">›</li>
+          <li class="seg" data-seg="4">PotatoeOptimizer</li>
+        </ol>
+        <div class="bar"><i id="fill"></i></div>
+        <p class="count" id="count">0 de 4 pasos completados</p>
+      </section>
+
+      <ol class="steps">
+        <li class="step" data-segs="0">
+          <div class="mark">1</div>
+          <button class="head" aria-expanded="false">
+            <b>Abre la carpeta del juego</b><span>Desde Battle.net</span>
+          </button>
+          <div class="panel">
+            <div>
+              <div class="body">
+                <p>
+                  En Battle.net, con <b>WoW: Forever</b> seleccionado, pulsa el
+                  engranaje junto al botón Play y elige
+                  <b>Show in Explorer</b> (Mostrar en el explorador).
+                </p>
+                <div class="shot">
+                  <img
+                    alt="Menú del engranaje en Battle.net con la opción Show in Explorer resaltada"
+                    src="assets/inst1.png"
+                  />
+                </div>
+                <button class="btn" data-done>Listo, siguiente</button>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="step" data-segs="1,2,3">
+          <div class="mark">2</div>
+          <button class="head" aria-expanded="false">
+            <b>Llega hasta la carpeta AddOns</b
+            ><span>Tres carpetas, una dentro de otra</span>
+          </button>
+          <div class="panel">
+            <div>
+              <div class="body">
+                <p>
+                  En la ventana que se abrió, entra a <code>_forever</code>,
+                  luego a <code>Interface</code> y por último a
+                  <code>AddOns</code>.
+                </p>
+                <div class="tree" aria-label="Estructura de carpetas">
+                  <div>📁 World of Warcraft</div>
+                  <div class="l1 reveal hot" style="--i: 0">📂 _forever</div>
+                  <div class="l2 reveal hot" style="--i: 1">📂 Interface</div>
+                  <div class="l3 reveal hot" style="--i: 2">
+                    📂 AddOns ← aquí vas
+                  </div>
+                </div>
+                <button class="btn" data-done>Listo, siguiente</button>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="step" data-segs="4">
+          <div class="mark">3</div>
+          <button class="head" aria-expanded="false">
+            <b>Coloca la carpeta del addon</b><span>Copiar y pegar</span>
+          </button>
+          <div class="panel">
+            <div>
+              <div class="body">
+                <p>
+                  Descarga el ZIP del addon y copia la carpeta
+                  <code>PotatoeOptimizer</code> dentro de <code>AddOns</code>.
+                </p>
+                <p>
+                  <a
+                    class="btn"
+                    href="https://drive.google.com/drive/folders/1OPaSSUOBuYS2tuY82qsSe-UnAIBKADGo?usp=sharing"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    >Descargar PotatoeOptimizer</a
+                  >
+                </p>
+                <div class="tree" aria-label="Resultado esperado">
+                  <div>📂 AddOns</div>
+                  <div class="l1 reveal hot" style="--i: 0">
+                    📂 PotatoeOptimizer
+                  </div>
+                  <div class="l2 reveal" style="--i: 1">
+                    📄 PotatoeOptimizer.toc
+                  </div>
+                  <div class="l2 reveal" style="--i: 2">📄 core.lua</div>
+                </div>
+                <p class="note">
+                  Si ves una carpeta <code>PotatoeOptimizer</code> dentro de
+                  otra <code>PotatoeOptimizer</code>, saca la de adentro y
+                  pégala directamente en AddOns. Si no, el juego no la detecta.
+                </p>
+                <button class="btn" data-done>Listo, siguiente</button>
+              </div>
+            </div>
+          </div>
+        </li>
+
+        <li class="step" data-segs="">
+          <div class="mark">4</div>
+          <button class="head" aria-expanded="false">
+            <b>Cierra y vuelve a abrir el juego</b
+            ><span>Cerrar por completo, no solo salir del personaje</span>
+          </button>
+          <div class="panel">
+            <div>
+              <div class="body">
+                <p>
+                  Al entrar con tu personaje, verás este mensaje en el chat:
+                </p>
+                <div class="chat">
+                  <em>[PotatoeOptimizer]</em> Configuración optimizada aplicada
+                  (5/5).
+                </div>
+                <p>
+                  Si dice menos de 5/5, no pasa nada: el resto se aplicó igual.
+                  Si no aparece nada, en la pantalla de personajes pulsa
+                  <b>AddOns</b> y revisa que PotatoeOptimizer esté marcado.
+                </p>
+                <p>
+                  Cuando quieras volver a aplicarlo sin reiniciar, escribe
+                  <span class="kbd">/potato</span> en el chat.
+                </p>
+                <button class="btn" data-done>Listo, terminé</button>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ol>
+
+      <section class="final" id="final" aria-live="polite">
+        <h2>¡Todo listo! 🥔</h2>
+        <p>
+          Tu juego ya corre más ligero. Si algo no funciona, vuelve a revisar el
+          paso 3.
+        </p>
+        <button class="btn ghost" id="reset">Empezar de nuevo</button>
+      </section>
+
+      <footer>Hecho en casa, para la familia.</footer>
+    </main>
+
+    <script>
+      (function () {
+        var steps = Array.prototype.slice.call(
+          document.querySelectorAll(".step"),
+        );
+        var segs = Array.prototype.slice.call(
+          document.querySelectorAll(".seg"),
+        );
+        var done = steps.map(function () {
+          return false;
+        });
+        var open = 0;
+
+        function segList(s) {
+          var v = s.getAttribute("data-segs");
+          return v ? v.split(",").map(Number) : [];
+        }
+
+        function render() {
+          var on = {},
+            now = {};
+          steps.forEach(function (s, i) {
+            var isOpen = i === open,
+              isDone = done[i];
+            s.classList.toggle("open", isOpen);
+            s.classList.toggle("done", isDone);
+            s.querySelector(".head").setAttribute(
+              "aria-expanded",
+              isOpen ? "true" : "false",
+            );
+            s.querySelector(".mark").textContent = isDone ? "✓" : String(i + 1);
+            s.querySelector("[data-done]").textContent = isDone
+              ? "Quitar marca"
+              : i === steps.length - 1
+                ? "Listo, terminé"
+                : "Listo, siguiente";
+            segList(s).forEach(function (n) {
+              if (isDone) on[n] = true;
+              else if (isOpen) now[n] = true;
+            });
+          });
+          if (done[0]) on[0] = true;
+          segs.forEach(function (el, n) {
+            el.classList.toggle("on", !!on[n]);
+            el.classList.toggle("now", !on[n] && !!now[n]);
+          });
+          var total = done.filter(Boolean).length;
+          document.getElementById("fill").style.width =
+            (total / steps.length) * 100 + "%";
+          document.getElementById("count").textContent =
+            total + " de " + steps.length + " pasos completados";
+          document
+            .getElementById("final")
+            .classList.toggle("show", total === steps.length);
+        }
+
+        steps.forEach(function (s, i) {
+          s.querySelector(".head").addEventListener("click", function () {
+            open = open === i ? -1 : i;
+            render();
+          });
+          s.querySelector("[data-done]").addEventListener("click", function () {
+            done[i] = !done[i];
+            if (done[i]) {
+              var next = -1;
+              for (var k = i + 1; k < steps.length; k++) {
+                if (!done[k]) {
+                  next = k;
+                  break;
+                }
+              }
+              open = next;
+            }
+            render();
+          });
+        });
+
+        document.getElementById("reset").addEventListener("click", function () {
+          done = steps.map(function () {
+            return false;
+          });
+          open = 0;
+          render();
+          window.scrollTo({ top: 0 });
+        });
+
+        render();
+      })();
+    </script>
+  </body>
+</html>
