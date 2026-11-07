@@ -1,0 +1,7 @@
+## Interface: 16001
+## Title: PotatoeOptimizer
+## Notes: Desactiva las caracteristicas graficas mas costosas de Wow Forever
+## Author: The Gatherer
+## Version: 1.0
+
+core.lua
